@@ -13,11 +13,13 @@ final class Alarm {
     var timestamp: Date
     var note: String
     var isActive: Bool
+    var order: Int
     
-    init(timestamp: Date, note: String = "", isActive: Bool = true) {
+    init(timestamp: Date, note: String = "", isActive: Bool = true, order: Int) {
         self.timestamp = timestamp
         self.note = note
         self.isActive = isActive
+        self.order = order
     }
     
     func toString() -> String {
@@ -33,14 +35,17 @@ final class GroupAlarm {
     @Relationship(deleteRule: .cascade)
     var alarms: [Alarm]
     var isExpanded: Bool = true
+    var order: Int
     
-    init(title: String, alarms: [Alarm]) {
+    init(title: String, alarms: [Alarm], order: Int) {
         self.title = title
         self.alarms = alarms
+        self.order = order
     }
     
     init() {
         self.title = "New Group"
         self.alarms = []
+        self.order = 0
     }
 }

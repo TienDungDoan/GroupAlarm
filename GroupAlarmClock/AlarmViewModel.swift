@@ -11,15 +11,33 @@ import SwiftData
 final class AlarmViewModel {
     
     private var context: ModelContext
-        
+    
     init(context: ModelContext) {
         self.context = context
     }
     
     func addGroup() {
-        context.insert(GroupAlarm())
+        let groups = fetchGroupsSorted()
+        for group in groups {
+            group.order += 1
+        }
+        
+        let newGroup = GroupAlarm(
+            title: "New Group",
+            alarms: [],
+            order: 0
+        )
+        context.insert(newGroup)
     }
-
+    
+    func fetchGroupsSorted() -> [GroupAlarm] {
+        let descriptor = FetchDescriptor<GroupAlarm>(
+            sortBy: [SortDescriptor(\.order)]
+        )
+        
+        return (try? context.fetch(descriptor)) ?? []
+    }
+    
     func deleteGroup(_ group: GroupAlarm) {
         context.delete(group)
     }
@@ -29,9 +47,25 @@ final class AlarmViewModel {
     }
     
     func addAlarm(to group: GroupAlarm) {
-        let newAlarm = Alarm(timestamp: Date())
+        let nextOrder = (group.alarms.map { $0.order }.max() ?? -1) + 1
+        let newAlarm = Alarm(timestamp: Date(), order: nextOrder)
         context.insert(newAlarm)
         group.alarms.append(newAlarm)
+    }
+    
+    func normalizeOrder(_ groups: [GroupAlarm]) {
+        let needsFix = groups.enumerated().contains {
+            $0.element.order != $0.offset
+        }
+        
+        guard needsFix else { return }
+        
+        let sorted = groups.sorted { $0.order < $1.order }
+        
+        for (index, group) in sorted.enumerated() {
+            group.order = index
+            group.alarms = group.alarms.sorted { $0.order < $1.order }
+        }
     }
     
     func updateTitleGroup(newTitle: String, for group: GroupAlarm) {

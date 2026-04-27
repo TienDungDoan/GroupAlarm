@@ -9,6 +9,8 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
+    @AppStorage("schema_version") private var schemaVersion: Int = 1
+    
     @Environment(\.modelContext) private var modelContext
     @Query private var groupAlarms: [GroupAlarm]
     
@@ -48,7 +50,7 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             List {
-                ForEach(groupAlarms) { group in
+                ForEach(groupAlarms.sorted { $0.order < $1.order }) { group in
                     groupSection(group)
                 }
                 .onDelete(perform: deleteGroup)
@@ -66,6 +68,13 @@ struct ContentView: View {
                 timePickerSheet
             }
         }
+        .onAppear {
+            MigrationManager.shared.runIfNeeded(
+                groups: groupAlarms,
+                schemaVersion: &schemaVersion
+            )
+            viewModel.normalizeOrder(groupAlarms)
+        }
     }
     
     @ViewBuilder
@@ -80,9 +89,7 @@ struct ContentView: View {
                 }
             )
         ) {
-            // MARK: - Content
-            
-            ForEach(group.alarms) { alarm in
+            ForEach(group.alarms.sorted { $0.order < $1.order }) { alarm in
                 alarmRow(alarm, group: group)
             }
             .onDelete { offsets in
@@ -101,7 +108,6 @@ struct ContentView: View {
             }
             
         } label: {
-            // MARK: - Label (NO gray style anymore)
             Text(group.title)
                 .font(.headline)
         }

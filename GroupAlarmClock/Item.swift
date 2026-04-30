@@ -10,10 +10,13 @@ import SwiftData
 
 @Model
 final class Alarm {
+    var id: UUID = UUID()
     var timestamp: Date
     var note: String
     var isActive: Bool
     var order: Int
+    
+    var group: GroupAlarm?
     
     init(timestamp: Date, note: String = "", isActive: Bool = true, order: Int) {
         self.timestamp = timestamp
@@ -31,9 +34,12 @@ final class Alarm {
 
 @Model
 final class GroupAlarm {
+    var id: UUID = UUID()
     var title: String
+    
     @Relationship(deleteRule: .cascade)
     var alarms: [Alarm]
+    
     var isExpanded: Bool = true
     var order: Int
     
@@ -41,6 +47,10 @@ final class GroupAlarm {
         self.title = title
         self.alarms = alarms
         self.order = order
+        
+        for alarm in alarms {
+            alarm.group = self
+        }
     }
     
     init() {

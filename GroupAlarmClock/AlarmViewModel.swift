@@ -49,6 +49,7 @@ final class AlarmViewModel {
     func addAlarm(to group: GroupAlarm) {
         let nextOrder = (group.alarms.map { $0.order }.max() ?? -1) + 1
         let newAlarm = Alarm(timestamp: Date(), order: nextOrder)
+        newAlarm.group = group
         context.insert(newAlarm)
         group.alarms.append(newAlarm)
     }

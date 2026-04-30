@@ -50,7 +50,7 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             List {
-                ForEach(groupAlarms.sorted { $0.order < $1.order }) { group in
+                ForEach(groupAlarms.sorted { $0.order < $1.order }, id: \.id) { group in
                     groupSection(group)
                 }
                 .onDelete(perform: deleteGroup)
@@ -89,7 +89,7 @@ struct ContentView: View {
                 }
             )
         ) {
-            ForEach(group.alarms.sorted { $0.order < $1.order }) { alarm in
+            ForEach(group.alarms.sorted { $0.order < $1.order }, id: \.id) { alarm in
                 alarmRow(alarm, group: group)
             }
             .onDelete { offsets in

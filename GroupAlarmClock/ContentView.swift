@@ -25,20 +25,18 @@ struct ContentView: View {
         AlarmViewModel(context: modelContext)
     }
     
-    var timePickerSheet: some View {
+    private func timePickerSheet(_ alarm: Alarm) -> some View {
         VStack {
-            if let alarm = selectedAlarm {
-                DatePicker(
-                    "",
-                    selection: Binding(
-                        get: { alarm.timestamp },
-                        set: { alarm.timestamp = $0 }
-                    ),
-                    displayedComponents: .hourAndMinute
-                )
-                .datePickerStyle(.wheel)
-                .labelsHidden()
-            }
+            DatePicker(
+                "",
+                selection: Binding(
+                    get: { alarm.timestamp },
+                    set: { alarm.timestamp = $0 }
+                ),
+                displayedComponents: .hourAndMinute
+            )
+            .datePickerStyle(.wheel)
+            .labelsHidden()
             Button("Done") {
                 selectedAlarm = nil
             }
@@ -64,8 +62,8 @@ struct ContentView: View {
                     }
                 }
             }
-            .sheet(item: $selectedAlarm) { _ in
-                timePickerSheet
+            .sheet(item: $selectedAlarm) { alarm in
+                timePickerSheet(alarm)
             }
         }
         .onAppear {

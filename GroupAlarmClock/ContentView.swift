@@ -12,11 +12,11 @@ struct ContentView: View {
     @AppStorage("schema_version") private var schemaVersion: Int = 1
     
     @Environment(\.modelContext) private var modelContext
-    @Query private var groupAlarms: [GroupAlarm]
+    @Query(sort: \GroupAlarm.order) private var groupAlarms: [GroupAlarm]
     
     @State private var editingGroupID: PersistentIdentifier?
     @State private var editingText: String = ""
-    @FocusState private var isFocused: Bool
+    @FocusState private var isEditing: Bool
     
     @State private var selectedGroup: GroupAlarm?
     @State private var selectedAlarm: Alarm?
@@ -48,7 +48,7 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             List {
-                ForEach(groupAlarms.sorted { $0.order < $1.order }, id: \.id) { group in
+                ForEach(groupAlarms, id: \.id) { group in
                     groupSection(group)
                 }
                 .onDelete(perform: deleteGroup)
@@ -87,7 +87,7 @@ struct ContentView: View {
                 }
             )
         ) {
-            ForEach(group.alarms.sorted { $0.order < $1.order }, id: \.id) { alarm in
+            ForEach(group.alarms, id: \.id) { alarm in
                 alarmRow(alarm, group: group)
             }
             .onDelete { offsets in
@@ -106,8 +106,39 @@ struct ContentView: View {
             }
             
         } label: {
-            Text(group.title)
-                .font(.headline)
+            HStack {
+                if editingGroupID == group.id {
+                    TextField("Group name", text: $editingText)
+                        .textFieldStyle(.roundedBorder)
+                        .focused($isEditing)
+                        .onSubmit {
+                            commitEdit(group)
+                        }
+                        .onAppear {
+                            isEditing = true
+                        }
+                        .onChange(of: isEditing) { _, newValue in
+                            if !newValue {
+                                commitEdit(group)
+                            }
+                        }
+                } else {
+                    Text(group.title)
+                        .font(.headline)
+                        .onTapGesture {
+                            editingGroupID = group.id
+                            editingText = group.title
+                        }
+                }
+                
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation {
+                            group.isExpanded.toggle()
+                        }
+                    }
+            }
         }
     }
 
@@ -156,13 +187,6 @@ struct ContentView: View {
         viewModel.updateTitleGroup(newTitle: editingText, for: group)
         editingGroupID = nil
         editingText = ""
-    }
-    
-    private func bindingExpand(for group: GroupAlarm) -> Binding<Bool> {
-        Binding(
-            get: { group.isExpanded },
-            set: { group.isExpanded = $0 }
-        )
     }
 }
 

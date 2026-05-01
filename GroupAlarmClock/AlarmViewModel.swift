@@ -71,7 +71,7 @@ final class AlarmViewModel {
     
     func updateTitleGroup(newTitle: String, for group: GroupAlarm) {
         let trimmed = newTitle.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else { return }
+        guard !trimmed.isEmpty && trimmed != group.title else { return }
         
         group.title = trimmed
         try? context.save()

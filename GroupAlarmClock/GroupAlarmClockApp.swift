@@ -15,17 +15,21 @@ struct GroupAlarmClockApp: App {
             Alarm.self, GroupAlarm.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
+        
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
-
+    
+    init() {
+        UIScrollView.appearance().bounces = false
+    }
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            HomeView()
                 .onAppear(perform: UIApplication.shared.addTapGestureRecognizer)
         }
         .modelContainer(sharedModelContainer)
@@ -50,14 +54,14 @@ extension UIApplication: @retroactive UIGestureRecognizerDelegate {
 }
 
 enum AppSchemaV1: VersionedSchema {
-    static var versionIdentifier = Schema.Version(1, 0, 0)
+    static let versionIdentifier = Schema.Version(1, 0, 0)
     static var models: [any PersistentModel.Type] {
         [Alarm.self, GroupAlarm.self]
     }
 }
 
 enum AppSchemaV2: VersionedSchema {
-    static var versionIdentifier = Schema.Version(2, 0, 0)
+    static let versionIdentifier = Schema.Version(2, 0, 0)
     static var models: [any PersistentModel.Type] {
         [Alarm.self, GroupAlarm.self]
     }

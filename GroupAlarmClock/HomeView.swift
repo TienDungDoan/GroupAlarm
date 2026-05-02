@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  HomeView.swift
 //  GroupAlarmClock
 //
 //  Created by Tien Dung Doan on 22/2/26.
@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-struct ContentView: View {
+struct HomeView: View {
     @AppStorage("schema_version") private var schemaVersion: Int = 1
     
     @Environment(\.modelContext) private var modelContext
@@ -25,54 +25,53 @@ struct ContentView: View {
         AlarmViewModel(context: modelContext)
     }
     
-    private func timePickerSheet(_ alarm: Alarm) -> some View {
-        VStack {
-            DatePicker(
-                "",
-                selection: Binding(
-                    get: { alarm.timestamp },
-                    set: { alarm.timestamp = $0 }
-                ),
-                displayedComponents: .hourAndMinute
-            )
-            .datePickerStyle(.wheel)
-            .labelsHidden()
-            Button("Done") {
-                selectedAlarm = nil
-            }
-            .padding()
-        }
-        .presentationDetents([.medium])
-    }
-    
     var body: some View {
-        NavigationStack {
-            List {
-                ForEach(groupAlarms, id: \.id) { group in
-                    groupSection(group)
+        ZStack {
+            NavigationStack {
+                List {
+                    ForEach(groupAlarms, id: \.id) { group in
+                        groupSection(group)
+                    }
+                    .onDelete(perform: deleteGroup)
                 }
-                .onDelete(perform: deleteGroup)
-            }
-            .toolbar {
-                ToolbarItem {
-                    Button {
-                        addGroup()
-                    } label: {
-                        Image(systemName: "plus")
+                .toolbar {
+                    ToolbarItem {
+                        Button {
+                            addGroup()
+                        } label: {
+                            Image(systemName: "plus")
+                        }
                     }
                 }
             }
-            .sheet(item: $selectedAlarm) { alarm in
-                timePickerSheet(alarm)
+            .onAppear {
+                MigrationManager.shared.runIfNeeded(
+                    groups: groupAlarms,
+                    schemaVersion: &schemaVersion
+                )
+                viewModel.normalizeOrder(groupAlarms)
+            }
+            
+            if selectedAlarm != nil {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .transition(.opacity)
+                    .zIndex(1)
+            }
+            
+            if let alarm = selectedAlarm {
+                CustomSheet {
+                    DetailView(alarm: alarm) {
+                        selectedAlarm = nil
+                    } onSave: {
+                        selectedAlarm = nil
+                    }
+                }
+                .zIndex(2)
+                .transition(.move(edge: .bottom))
             }
         }
-        .onAppear {
-            MigrationManager.shared.runIfNeeded(
-                groups: groupAlarms,
-                schemaVersion: &schemaVersion
-            )
-            viewModel.normalizeOrder(groupAlarms)
-        }
+        .animation(.easeInOut, value: selectedAlarm)
     }
     
     @ViewBuilder
@@ -141,7 +140,7 @@ struct ContentView: View {
             }
         }
     }
-
+    
     
     @ViewBuilder
     private func alarmRow(_ alarm: Alarm, group: GroupAlarm) -> some View {
@@ -191,6 +190,6 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    HomeView()
         .modelContainer(for: Alarm.self, inMemory: true)
 }

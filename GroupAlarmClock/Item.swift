@@ -30,6 +30,24 @@ final class Alarm {
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: timestamp)
     }
+    
+    func apply(from draft: AlarmDraft) {
+        timestamp = draft.timestamp
+        note = draft.note
+        isActive = draft.isActive
+    }
+}
+
+struct AlarmDraft {
+    var timestamp: Date
+    var note: String
+    var isActive: Bool
+    
+    init(from alarm: Alarm) {
+        self.timestamp = alarm.timestamp
+        self.note = alarm.note
+        self.isActive = alarm.isActive
+    }
 }
 
 @Model

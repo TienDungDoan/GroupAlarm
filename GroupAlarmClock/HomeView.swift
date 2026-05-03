@@ -63,8 +63,6 @@ struct HomeView: View {
                 CustomSheet {
                     DetailView(alarm: alarm) {
                         selectedAlarm = nil
-                    } onSave: {
-                        selectedAlarm = nil
                     }
                 }
                 .zIndex(2)

@@ -9,15 +9,22 @@ import SwiftUI
 
 struct DetailView: View {
     @Bindable var alarm: Alarm
+    @State private var draft: AlarmDraft
+    
     var onClose: () -> Void
-    var onSave: () -> Void
+    
+    init(alarm: Alarm, onClose: @escaping () -> Void) {
+        self.alarm = alarm
+        self.onClose = onClose
+        _draft = State(initialValue: AlarmDraft(from: alarm))
+    }
     
     var body: some View {
         NavigationStack {
             Form {
                 DatePicker(
                     "",
-                    selection: $alarm.timestamp,
+                    selection: $draft.timestamp,
                     displayedComponents: .hourAndMinute
                 )
                 .datePickerStyle(.wheel)
@@ -34,7 +41,7 @@ struct DetailView: View {
                     HStack {
                         Text("Label")
                         Spacer()
-                        Text(alarm.note.isEmpty ? "Alarm" : alarm.note)
+                        Text(draft.note.isEmpty ? "Alarm" : draft.note)
                             .foregroundStyle(.secondary)
                     }
                     
@@ -45,7 +52,7 @@ struct DetailView: View {
                             .foregroundStyle(.secondary)
                     }
                     
-                    Toggle("Snooze", isOn: $alarm.isActive)
+                    Toggle("Snooze", isOn: $draft.isActive)
                 }
                 
                 Section {
@@ -64,7 +71,13 @@ struct DetailView: View {
                     Button("Cancel") { onClose() }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Save") { onSave() }
+                    Button("Save") {
+                        alarm.apply(from: draft)
+                        onClose()
+                    }
+                    .disabled(draft.timestamp == alarm.timestamp &&
+                              draft.note == alarm.note &&
+                              draft.isActive == alarm.isActive)
                 }
             }
         }
@@ -73,8 +86,6 @@ struct DetailView: View {
 
 #Preview {
     DetailView(alarm: Alarm(timestamp: Date(), order: 0)) {
-        
-    } onSave: {
         
     }
 }

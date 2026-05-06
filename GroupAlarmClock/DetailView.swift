@@ -33,25 +33,16 @@ struct DetailView: View {
                 .labelsHidden()
                 
                 Section {
-                    HStack {
-                        Text("Repeat")
-                        Spacer()
-                        Text("Never")
-                            .foregroundStyle(.secondary)
+                    SettingRow(title: "Repeat", value: "Never") {
+                        print("Tap Repeat")
                     }
                     
-                    HStack {
-                        Text("Label")
-                        Spacer()
-                        Text(draft.note.isEmpty ? "Alarm" : draft.note)
-                            .foregroundStyle(.secondary)
+                    SettingRow(title: "Label", text: $draft.note) {
+                        print("Tap Label")
                     }
                     
-                    HStack {
-                        Text("Sound")
-                        Spacer()
-                        Text("Default")
-                            .foregroundStyle(.secondary)
+                    SettingRow(title: "Sound", value: "Default") {
+                        print("Tap Sound")
                     }
                     
                     Toggle("Snooze", isOn: $draft.isActive)
@@ -84,6 +75,63 @@ struct DetailView: View {
                 }
             }
         }
+    }
+}
+
+struct SettingRow: View {
+    let title: String
+    var value: String?
+    var text: Binding<String>? = nil
+    var action: (() -> Void)? = nil
+    
+    @State private var isEditing = false
+    @FocusState private var isFocused: Bool
+    
+    var body: some View {
+        HStack {
+            Text(title)
+            Spacer()
+            
+            if let text, isEditing {
+                TextField("", text: text)
+                    .multilineTextAlignment(.trailing)
+                    .focused($isFocused)
+                    .onSubmit { finishEdit() }
+                    .onAppear { isFocused = true }
+            } else {
+                Text(displayValue)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            handleTap()
+        }
+        .onChange(of: isFocused) { _, focused in
+            if !focused && isEditing {
+                finishEdit()
+            }
+        }
+    }
+    
+    private var displayValue: String {
+        if let text = text?.wrappedValue {
+            return text.isEmpty ? "" : text
+        }
+        return value ?? ""
+    }
+    
+    private func handleTap() {
+        if text != nil {
+            isEditing = true
+        } else {
+            action?()
+        }
+    }
+    
+    private func finishEdit() {
+        isEditing = false
+        isFocused = false
     }
 }
 

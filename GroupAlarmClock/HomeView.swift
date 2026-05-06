@@ -18,7 +18,6 @@ struct HomeView: View {
     @State private var editingText: String = ""
     @FocusState private var isEditing: Bool
     
-    @State private var selectedGroup: GroupAlarm?
     @State private var selectedAlarm: Alarm?
     
     private var viewModel: AlarmViewModel {
@@ -85,7 +84,7 @@ struct HomeView: View {
             )
         ) {
             ForEach(group.alarms, id: \.id) { alarm in
-                alarmRow(alarm, group: group)
+                alarmRow(alarm)
             }
             .onDelete { offsets in
                 deleteAlarm(at: offsets, in: group)
@@ -141,9 +140,8 @@ struct HomeView: View {
     
     
     @ViewBuilder
-    private func alarmRow(_ alarm: Alarm, group: GroupAlarm) -> some View {
+    private func alarmRow(_ alarm: Alarm) -> some View {
         Button {
-            selectedGroup = group
             selectedAlarm = alarm
         } label: {
             Text(alarm.toString())

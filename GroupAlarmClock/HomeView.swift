@@ -61,7 +61,7 @@ struct HomeView: View {
             
             if let alarm = selectedAlarm {
                 CustomSheet {
-                    DetailView(alarm: alarm) {
+                    DetailView(alarm: alarm, viewModel: viewModel) {
                         selectedAlarm = nil
                     }
                 }

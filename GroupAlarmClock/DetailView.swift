@@ -10,12 +10,14 @@ import SwiftUI
 struct DetailView: View {
     @Bindable var alarm: Alarm
     @State private var draft: AlarmDraft
+    let viewModel : AlarmViewModel
     
     var onClose: () -> Void
     
-    init(alarm: Alarm, onClose: @escaping () -> Void) {
+    init(alarm: Alarm, viewModel: AlarmViewModel, onClose: @escaping () -> Void) {
         self.alarm = alarm
         self.onClose = onClose
+        self.viewModel = viewModel
         _draft = State(initialValue: AlarmDraft(from: alarm))
     }
     
@@ -57,7 +59,8 @@ struct DetailView: View {
                 
                 Section {
                     Button(role: .destructive) {
-                        // delete logic
+                        viewModel.deleteAlarm(alarm)
+                        onClose()
                     } label: {
                         Text("Delete Alarm")
                             .frame(maxWidth: .infinity, alignment: .center)
@@ -84,8 +87,8 @@ struct DetailView: View {
     }
 }
 
-#Preview {
-    DetailView(alarm: Alarm(timestamp: Date(), order: 0)) {
-        
-    }
-}
+//#Preview {
+//    DetailView(alarm: Alarm(timestamp: Date(), order: 0)) {
+//        
+//    }
+//}

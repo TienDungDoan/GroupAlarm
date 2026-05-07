@@ -7,10 +7,16 @@
 
 import SwiftUI
 
+enum Destination {
+    case repeatSelection
+    case soundSelection
+}
+
 struct DetailView: View {
     @Bindable var alarm: Alarm
     @State private var draft: AlarmDraft
     let viewModel : AlarmViewModel
+    @State private var destination: Destination?
     
     var onClose: () -> Void
     
@@ -34,15 +40,13 @@ struct DetailView: View {
                 
                 Section {
                     SettingRow(title: "Repeat", value: "Never") {
-                        print("Tap Repeat")
+                        destination = .repeatSelection
                     }
                     
-                    SettingRow(title: "Label", text: $draft.note) {
-                        print("Tap Label")
-                    }
+                    SettingRow(title: "Label", text: $draft.note)
                     
                     SettingRow(title: "Sound", value: "Default") {
-                        print("Tap Sound")
+                        destination = .soundSelection
                     }
                     
                     Toggle("Snooze", isOn: $draft.isActive)
@@ -72,6 +76,22 @@ struct DetailView: View {
                     .disabled(draft.timestamp == alarm.timestamp &&
                               draft.note == alarm.note &&
                               draft.isActive == alarm.isActive)
+                }
+            }
+            .navigationDestination(item: $destination) { destination in
+                switch destination {
+                case .repeatSelection:
+                    SelectionListView(
+                        title: "Repeat",
+                        selectionType: .weekdays,
+                        selectedItem: $draft.note
+                    )
+                case .soundSelection:
+                    SelectionListView(
+                        title: "Sound",
+                        selectionType: .sounds,
+                        selectedItem: $draft.note
+                    )
                 }
             }
         }
